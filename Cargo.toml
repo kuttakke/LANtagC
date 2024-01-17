@@ -6,16 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anstyle = "1.0.4"
 chrono = "0.4.31"
+clap = { version = "4.4.14", features = ["derive"] }
+futures-util = "0.3.30"
+indicatif = "0.17.7"
+owo-colors = "4.0.0"
 regex = "1.10.2"
-reqwest = { version = "0.11.23", features = ["blocking", "json"] }
+reqwest = { version = "0.11.23", features = ["blocking", "json", "stream"] }
 scraper = "0.18.1"
 serde = { version = "1.0.195", features = ["derive"] }
 serde_json = "1.0"
 strsim = "0.11.0"
-owo-colors = "4.0.0"
+tabled = { version = "0.15.0", features = ["ansi"] }
 tokio = { version = "1", features = ["rt", "macros"] }
 url = "2"
-clap = { version = "4.4.14", features = ["derive"] }
-anstyle = "1.0.4"
-tabled = { version = "0.15.0", features = ["ansi"] }

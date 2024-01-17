@@ -6,6 +6,7 @@ pub enum FetchError {
     Reqwest(reqwest::Error),
     Io(std::io::Error),
     Json(serde_json::Error),
+    Bar(indicatif::style::TemplateError),
     Other(String),
 }
 
@@ -15,6 +16,7 @@ impl std::fmt::Display for FetchError {
             FetchError::Reqwest(e) => write!(f, "Reqwest error: {}", e),
             FetchError::Io(e) => write!(f, "IO error: {}", e),
             FetchError::Json(e) => write!(f, "JSON error: {}", e),
+            FetchError::Bar(e) => write!(f, "Bar error: {}", e),
             FetchError::Other(e) => write!(f, "Other error: {}", e),
         }
     }
@@ -26,6 +28,7 @@ impl Error for FetchError {
             FetchError::Reqwest(e) => Some(e),
             FetchError::Io(e) => Some(e),
             FetchError::Json(e) => Some(e),
+            FetchError::Bar(e) => Some(e),
             FetchError::Other(_) => None,
         }
     }
@@ -46,5 +49,11 @@ impl From<reqwest::Error> for FetchError {
 impl From<std::io::Error> for FetchError {
     fn from(err: std::io::Error) -> Self {
         FetchError::Io(err)
+    }
+}
+
+impl From<indicatif::style::TemplateError> for FetchError {
+    fn from(err: indicatif::style::TemplateError) -> Self {
+        FetchError::Bar(err)
     }
 }

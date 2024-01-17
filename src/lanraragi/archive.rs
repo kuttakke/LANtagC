@@ -1,9 +1,10 @@
 use owo_colors::OwoColorize;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use regex::Regex;
 
-use super::utils::fetch;
+use super::progress::make_progress_bar;
+use super::utils::fetch_raw_with_retry;
 
 use super::args::args;
 
@@ -49,15 +50,15 @@ impl Archive {
             panic!("failed")
         }
     }
-    
+
     pub fn is_empty_tags(&self) -> bool {
         let tag_list: Vec<&str> = self.tags.split(',').collect();
         if tag_list.is_empty() {
-            return true
+            return true;
         }
         tag_list.len() == 1 && tag_list[0].starts_with("date_added")
     }
-    
+
     pub fn regex_title(&self) -> String {
         if let Ok(regex) = Regex::new(
             r"(\[.*?\])\s*(.*?)\s*(?:#.*?)?\s*(?:\([^)]*\))?\s*(?:｜|︱.*?)?\s*(?:\([^)]*\))?\s*(\[|$)",
@@ -71,13 +72,15 @@ impl Archive {
         }
         String::new()
     }
-    
+
     // 异步函数，获取所有lanraragi作品
     pub async fn fetch_archives() -> Vec<Self> {
-        fetch(&format!("http://{}/api/archives", &args().endpoint))
-            .await
+        let resp = fetch_raw_with_retry(|| {
+            reqwest::Client::new().get(format!("http://{}/api/archives", &args().endpoint))
+        })
+        .await
+        .unwrap();
+        serde_json::from_slice::<Vec<Self>>(&make_progress_bar(resp, "lanraragi").await.unwrap())
             .unwrap()
     }
-
 }
-

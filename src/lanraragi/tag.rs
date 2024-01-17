@@ -1,17 +1,19 @@
 use std::collections::HashMap;
 
 use super::error::FetchError;
+use super::progress::make_progress_bar;
 use super::utils::fetch_raw_with_retry;
 
 async fn fetch() -> Result<serde_json::Value, FetchError> {
-    Ok(fetch_raw_with_retry(|| {
+    let resp = fetch_raw_with_retry(|| {
         reqwest::Client::new().get(
             "https://github.com/EhTagTranslation/Database/releases/latest/download/db.text.json",
         )
     })
-    .await?
-    .json::<serde_json::Value>()
-    .await?)
+    .await?;
+    Ok(serde_json::from_slice::<serde_json::Value>(
+        &make_progress_bar(resp, "cn tag").await?,
+    )?)
 }
 
 pub fn parse_data(
