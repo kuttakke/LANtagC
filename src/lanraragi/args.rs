@@ -20,9 +20,7 @@ pub struct Args {
 
 pub fn args() -> &'static Args {
     static ARGS: OnceLock<Args> = OnceLock::new();
-    ARGS.get_or_init(|| {
-        Args::parse()
-    })
+    ARGS.get_or_init(Args::parse)
 }
 
 fn get_styles() -> clap::builder::Styles {

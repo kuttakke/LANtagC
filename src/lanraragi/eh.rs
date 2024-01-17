@@ -1,6 +1,6 @@
+use super::archive::Archive;
 use super::args::args;
 use super::error::FetchError;
-use super::archive::Archive;
 use super::utils::fetch_raw_with_retry;
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
@@ -168,12 +168,11 @@ impl Archive {
         builder.push_record(["序号", "标题", "相似度", "页数", "日期"]);
         for (i, gl) in gls.iter().enumerate() {
             let similarity = normalized_damerau_levenshtein(&self.title, &gl.title) * 100.0;
-            let page_flag =
-                if gl.pages.trim_end_matches(" pages") == self.pagecount.to_string() {
-                    format!("{}✅", &gl.pages)
-                } else {
-                    (gl.pages).to_string()
-                };
+            let page_flag = if gl.pages.trim_end_matches(" pages") == self.pagecount.to_string() {
+                format!("{}✅", &gl.pages)
+            } else {
+                (gl.pages).to_string()
+            };
             builder.push_record([
                 &(i as i32 + 1).to_string(),
                 &gl.title,
@@ -218,8 +217,6 @@ impl Archive {
             .expect("Failed to read line");
         input.trim().parse::<i32>().unwrap()
     }
-
-
 }
 
 impl GL {

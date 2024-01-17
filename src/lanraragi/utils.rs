@@ -1,6 +1,6 @@
 use super::error::FetchError;
-
 use clap::error::Result;
+
 use serde::de::DeserializeOwned;
 
 pub async fn fetch_raw_with_retry<F>(builder: F) -> Result<reqwest::Response, FetchError>
@@ -30,9 +30,13 @@ where
     }
 }
 
+#[allow(dead_code)]
 pub async fn fetch<T>(url: &str) -> Result<T, FetchError>
 where
     T: DeserializeOwned,
 {
-    Ok(fetch_raw_with_retry(|| reqwest::Client::new().get(url)).await?.json::<T>().await?)
+    Ok(fetch_raw_with_retry(|| reqwest::Client::new().get(url))
+        .await?
+        .json::<T>()
+        .await?)
 }

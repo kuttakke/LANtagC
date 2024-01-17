@@ -1,7 +1,7 @@
 mod lanraragi;
 
-use lanraragi::args::args;
 use lanraragi::archive::Archive;
+use lanraragi::args::args;
 use lanraragi::tag::{fetch_latest_cn_tag, parse_data};
 use lanraragi::unhandle::add_and_save_no_handle;
 
@@ -19,7 +19,15 @@ async fn main() {
     let all_archive = fetch_task.await.unwrap();
     let tags = tags_task.await.unwrap();
 
-    let tag_cn = parse_data(&tags).unwrap();
+    // multi_progress().clear().unwrap();
+
+    let tag_cn = match parse_data(&tags) {
+        Ok(data) => data,
+        Err(err) => {
+            println!("获取标签失败: {}", err);
+            return;
+        }
+    };
     let mut run_count = 0;
 
     println!("共有 {} 条作品", all_archive.len().bright_green());
