@@ -2,6 +2,7 @@ use owo_colors::OwoColorize;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use std::sync::OnceLock;
 
 use super::progress::make_progress_bar;
 use super::utils::fetch_raw_with_retry;
@@ -19,6 +20,13 @@ pub struct Archive {
     pub progress: i32,
     pub tags: String,
     pub title: String,
+}
+
+fn regex_title_obj() -> &'static Regex {
+    static REGEX: OnceLock<Regex> = OnceLock::new();
+    REGEX.get_or_init(|| Regex::new(
+        r"(?:(?:\[[^\]]*\])|(?:\([^\)]*\)))(?:\s*)([^(｜︱\s\[]+)(?:\s*)(?:(?:\([^)]*\))|(?:\[[^\]]*\]))?"
+    ).unwrap())
 }
 
 impl Archive {
@@ -60,14 +68,22 @@ impl Archive {
     }
 
     pub fn regex_title(&self) -> String {
-        if let Ok(regex) = Regex::new(
-            r"(\[.*?\])\s*(.*?)\s*(?:#.*?)?\s*(?:\([^)]*\))?\s*(?:｜|︱.*?)?\s*(?:\([^)]*\))?\s*(\[|$)",
-        ) {
-            if let Some(captures) = regex.captures(&self.title) {
-                if let Some(group) = captures.get(2) {
-                    println!("match group: {}", group.as_str());
-                    return group.as_str().to_string();
+        if let Some(captures) = regex_title_obj().captures(&self.title) {
+            if let Some(group) = captures.get(1) {
+                if group.as_str().chars().count() == 1 {
+                    let start_pos = group.start();
+                    let remaining_title = &self.title[start_pos + group.as_str().bytes().count()..];
+                    if let Some(captures) = regex_title_obj().captures(remaining_title) {
+                        if let Some(group) = captures.get(1) {
+                            if group.as_str().chars().count() > 1 {
+                                println!("match group: {}", group.as_str().bright_yellow());
+                                return group.as_str().to_string();
+                            }
+                        }
+                    }
                 }
+                println!("match group: {}", group.as_str().bright_yellow());
+                return group.as_str().to_string();
             }
         }
         String::new()
