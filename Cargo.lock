@@ -732,7 +732,7 @@ dependencies = [
 
 [[package]]
 name = "lantag_c"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anstyle",
  "chrono",
