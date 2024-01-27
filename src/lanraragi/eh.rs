@@ -5,6 +5,8 @@ use super::utils::fetch_raw_with_retry;
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use owo_colors::OwoColorize;
+use regex::Regex;
+use std::sync::OnceLock;
 use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt::Debug};
@@ -69,6 +71,15 @@ async fn fetch_eh(url: &str) -> Result<reqwest::Response, FetchError> {
     ).await
 }
 
+fn regex_unsupport() -> &'static Regex {
+    static REGEX: OnceLock<Regex> = OnceLock::new();
+    REGEX.get_or_init(|| Regex::new(r"(、|\.|\/|\||;|\(|\)|\[|\]|\{|\}|!)").unwrap())
+}
+
+fn remove_unsupport_str(intput: &str) -> String {
+    regex_unsupport().replace_all(intput, "&").to_string()
+}
+
 impl Archive {
     pub async fn search_from_eh(&self) -> Vec<GL> {
         let title = self.regex_title();
@@ -76,14 +87,13 @@ impl Archive {
             println!("❌title no match: {}", &self.title.red());
             return vec![];
         }
-
         let url = "https://exhentai.org/?f_search=";
         let url = format!(
             "{}{}",
             url,
-            form_urlencoded::byte_serialize(title.as_bytes()).collect::<String>()
+            form_urlencoded::byte_serialize(remove_unsupport_str(&title).as_bytes())
+                .collect::<String>()
         );
-
         let resp = fetch_eh(&url).await.unwrap();
 
         let text = resp.text().await.unwrap();
